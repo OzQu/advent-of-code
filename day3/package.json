@@ -1,0 +1,21 @@
+{
+  "name": "day3",
+  "description": "Advent of Code 2021 - day3",
+  "scripts": {
+    "start": "npx ts-node day3.ts",
+    "test": "npx jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "jest": "^27.4.3",
+    "ts-jest": "^27.1.1",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "ts-node": "^10.4.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
