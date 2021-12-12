@@ -1,0 +1,19 @@
+// tsconfig.json
+{
+    "include": ["./*.ts", "lib/Game.ts", "lib/Board.ts"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs",
+        "outDir": "./out",
+        "rootDir": "/",
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "allowJs": false,
+        "types": ["node", "jest"]
+    }
+}
