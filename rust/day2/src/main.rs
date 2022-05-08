@@ -13,17 +13,9 @@ enum Direction {
 #[derive(Debug, Default)]
 struct Location {
     horizontal: usize,
-    depth: usize
+    depth: usize,
+    aim: usize
 }
-
-// impl Default for Location {
-//     fn default() -> Self {
-//         Location {
-//             horizontal: 0,
-//             depth: 0
-//         }
-//     }
-// }
 
 impl Location {
     fn move_to(&mut self, directions: &Vec<Direction>) -> () {
@@ -34,6 +26,20 @@ impl Location {
                 Direction::Up(units) => self.depth = self.depth - units
             }
         }
+    }
+
+    fn aim_and_move(&mut self, directions: &Vec<Direction>) -> () {
+        for direction in directions {
+            match direction {
+                Direction::Forward(units) => {
+                    self.horizontal = self.horizontal + units;
+                    self.depth = self.depth + (self.aim * units);
+                },
+                Direction::Down(units) => self.aim = self.aim + units,
+                Direction::Up(units) => self.aim = self.aim - units
+            }
+        }
+
     }
 }
 
@@ -78,4 +84,10 @@ fn main() {
     location.move_to(&directions);
     println!("moved location: {:?}", location);
     println!("multiply coordinates: {}", location.depth * location.horizontal);
+
+    let mut location2 = Location::default();
+    location2.aim_and_move(&directions);
+    println!("moved another location: {:?}", location2);
+    println!("multiply coordinates: {}", location2.depth * location2.horizontal);
+
 }
