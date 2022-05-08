@@ -1,1 +1,4 @@
 node_modules
+*/*/debug/
+*/*/target/
+**/*.rs.bk
