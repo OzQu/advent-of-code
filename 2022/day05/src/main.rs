@@ -63,3 +63,14 @@ fn rearrange_crates(
     }
     stacks
 }
+
+/*
+This function iterates through the stacks, gets the front element
+(the top crate) of each stack, and collects them into a String. */
+fn get_top_crates(stacks: Vec<VecDeque<char>>) -> String {
+    stacks
+        .into_iter()
+        .filter_map(|stack| stack.front().cloned())
+        .collect()
+}
+
