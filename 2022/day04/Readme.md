@@ -1,6 +1,6 @@
 # ChatGPT 4
 This is amazing. I did only some styling refactoring fortests by myself, and for that reason I also had to add `.trim()` when reading lines. Other that that, all code is generated (also comments for tests) by AI.
-[Conversation with gpt4](gpt-4-conversation.mov)
+[Conversation with gpt4](https://youtu.be/gD4G60f2Xm0)
 
 ### Day 4: Camp Cleanup
 Space needs to be cleared before the last supplies can be unloaded from the ships, and so several Elves have been assigned the job of cleaning up sections of the camp. Every section has a unique ID number, and each Elf is assigned a range of section IDs.
