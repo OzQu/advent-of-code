@@ -45,3 +45,21 @@ fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, us
 
     (stacks, moves)
 }
+
+/*
+This function iterates through the moves, and for each move, it pops crates
+from the source stack and pushes them to the destination stack. The resulting
+stacks are returned after all moves are completed. */
+fn rearrange_crates(
+    mut stacks: Vec<VecDeque<char>>,
+    moves: Vec<(usize, usize, usize)>,
+) -> Vec<VecDeque<char>> {
+    for (num_crates, from, to) in moves {
+        for _ in 0..num_crates {
+            if let Some(crate) = stacks[from].pop_front() {
+                stacks[to].push_front(crate);
+            }
+        }
+    }
+    stacks
+}
