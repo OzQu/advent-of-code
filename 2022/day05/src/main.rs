@@ -13,3 +13,29 @@ fn main() {
 
     println!("Top crates of each stack: {}", top_crates);
 }
+
+fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
+    let mut stacks = Vec::new();
+    let mut moves = Vec::new();
+
+    let mut line = String::new();
+    reader.read_line(&mut line).expect("Failed to read initial stack line");
+    let stacks_line = line.trim();
+
+    for stack_str in stacks_line.split_whitespace() {
+        let stack: VecDeque<char> = stack_str.chars().collect();
+        stacks.push(stack);
+    }
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let parts: Vec<_> = line.split_whitespace().collect();
+        let num_crates = parts[1].parse::<usize>().unwrap();
+        let from = parts[3].trim_end_matches(',').parse::<usize>().unwrap() - 1;
+        let to = parts[5].parse::<usize>().unwrap() - 1;
+
+        moves.push((num_crates, from, to));
+    }
+
+    (stacks, moves)
+}
