@@ -14,6 +14,12 @@ fn main() {
     println!("Top crates of each stack: {}", top_crates);
 }
 
+/*
+This function reads the input file and returns two values: the initial
+stacks of crates and the list of moves. The stacks are represented as
+a vector of VecDeque<char>, while the moves are represented as a vector
+of tuples containing the number of crates to move, the source stack index,
+and the destination stack index. */
 fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
     let mut stacks = Vec::new();
     let mut moves = Vec::new();
