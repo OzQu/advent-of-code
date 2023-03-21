@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 fn main() {
-    let file = File::open("input.txt").expect("Unable to open input.txt");
+    let file = File::open("./test_data/example_data.txt").expect("Unable to open input.txt");
     let reader = BufReader::new(file);
 
     let (stacks, moves) = read_input(reader);
@@ -56,8 +56,8 @@ fn rearrange_crates(
 ) -> Vec<VecDeque<char>> {
     for (num_crates, from, to) in moves {
         for _ in 0..num_crates {
-            if let Some(crate) = stacks[from].pop_front() {
-                stacks[to].push_front(crate);
+            if let Some(crate_char) = stacks[from].pop_front() {
+                stacks[to].push_front(crate_char);
             }
         }
     }
