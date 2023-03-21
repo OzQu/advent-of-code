@@ -21,13 +21,19 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
     let mut moves = Vec::new();
 
     let mut lines: Vec<String> = Vec::new();
+    let mut is_move_section = false;
 
     for line in reader.lines() {
         let line = line.unwrap();
         if line.is_empty() {
-            break;
+            is_move_section = true;
+            continue;
         }
-        lines.push(line);
+        if !is_move_section {
+            lines.push(line);
+        } else {
+            moves.push(line);
+        }
     }
 
     let num_stacks = lines
@@ -53,10 +59,7 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
 
     let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
 
-    // Creating a separate lines iterator for the moves
-    let reader_moves = reader.into_inner();
-    for line in reader_moves.lines() {
-        let line = line.unwrap();
+    for line in moves.iter() {
         if let Some(captures) = move_regex.captures(&line) {
             let num_crates = captures[1].parse::<usize>().unwrap();
             let from = captures[2].parse::<usize>().unwrap() - 1;
