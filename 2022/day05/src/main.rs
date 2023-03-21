@@ -19,7 +19,26 @@ This function reads the input file and returns two values: the initial
 stacks of crates and the list of moves. The stacks are represented as
 a vector of VecDeque<char>, while the moves are represented as a vector
 of tuples containing the number of crates to move, the source stack index,
-and the destination stack index. */
+and the destination stack index.
+
+The input file is expected to have the following format:
+1. The first line contains the initial configuration of crate stacks,
+   where each stack is represented by a sequence of characters (crates),
+   and stacks are separated by whitespace.
+2. The subsequent lines represent the moves to be performed, with each line
+   formatted as follows:
+   "move <number_of_crates> from <source_stack> to <destination_stack>"
+   where <number_of_crates>, <source_stack>, and <destination_stack>
+   are integer values.
+
+The function parses the input by:
+1. Reading the first line to obtain the initial configuration of crate stacks.
+   Each stack is split by whitespace and converted into a VecDeque<char>.
+2. Reading the remaining lines to obtain the list of moves. Each line is
+   split by whitespace, and the relevant values (number of crates, source
+   stack, and destination stack) are extracted, parsed, and stored as tuples
+   in a vector.
+*/
 fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
     let mut stacks = Vec::new();
     let mut moves = Vec::new();
@@ -35,16 +54,17 @@ fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, us
 
     for line in reader.lines() {
         let line = line.unwrap();
-        let parts: Vec<_> = line.split_whitespace().filter(|s| !s.is_empty()).collect();
-        let num_crates = parts[0].parse::<usize>().unwrap();
-        let from = parts[2].trim_end_matches(',').parse::<usize>().unwrap() - 1;
-        let to = parts[4].parse::<usize>().unwrap() - 1;
-    
+        let parts: Vec<_> = line.split_whitespace().collect();
+        let num_crates = parts[1].parse::<usize>().unwrap();
+        let from = parts[3].trim_end_matches(',').parse::<usize>().unwrap() - 1;
+        let to = parts[5].parse::<usize>().unwrap() - 1;
+
         moves.push((num_crates, from, to));
     }
 
     (stacks, moves)
 }
+
 
 /*
 This function iterates through the moves, and for each move, it pops crates
