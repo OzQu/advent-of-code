@@ -16,7 +16,7 @@ fn main() {
     println!("Top crates of each stack: {}", top_crates);
 }
 
-fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
+fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
     let mut stacks: Vec<VecDeque<char>> = Vec::new();
     let mut moves = Vec::new();
 
@@ -53,7 +53,9 @@ fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, us
 
     let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
 
-    for line in reader.lines() {
+    // Creating a separate lines iterator for the moves
+    let reader_moves = reader.into_inner();
+    for line in reader_moves.lines() {
         let line = line.unwrap();
         if let Some(captures) = move_regex.captures(&line) {
             let num_crates = captures[1].parse::<usize>().unwrap();
