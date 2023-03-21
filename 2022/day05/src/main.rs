@@ -49,10 +49,11 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
             .chars()
             .filter(|&c| c != ' ')
             .collect();
-
+    
         for (stack_idx, &crate_char) in chars.iter().enumerate() {
             if crate_char != '[' && crate_char != ']' {
-                stacks[stack_idx].push_back(crate_char);
+                let actual_idx = stack_idx - 1;
+                stacks[actual_idx].push_back(crate_char);
             }
         }
     }
