@@ -18,7 +18,7 @@ fn main() {
 
 fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
     let mut stacks: Vec<VecDeque<char>> = Vec::new();
-    let mut moves = Vec::new();
+    let mut move_commands = Vec::new();
 
     let mut lines: Vec<String> = Vec::new();
     let mut is_move_section = false;
@@ -32,7 +32,7 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
         if !is_move_section {
             lines.push(line);
         } else {
-            moves.push(line);
+            move_commands.push(line);
         }
     }
 
@@ -58,8 +58,9 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
     }
 
     let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
+    let mut moves = Vec::new();
 
-    for line in moves.iter() {
+    for line in move_commands.iter() {
         if let Some(captures) = move_regex.captures(&line) {
             let num_crates = captures[1].parse::<usize>().unwrap();
             let from = captures[2].parse::<usize>().unwrap() - 1;
