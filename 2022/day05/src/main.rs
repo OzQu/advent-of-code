@@ -35,11 +35,11 @@ fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, us
 
     for line in reader.lines() {
         let line = line.unwrap();
-        let parts: Vec<_> = line.split_whitespace().collect();
-        let num_crates = parts[1].parse::<usize>().unwrap();
-        let from = parts[3].trim_end_matches(',').parse::<usize>().unwrap() - 1;
-        let to = parts[5].parse::<usize>().unwrap() - 1;
-
+        let parts: Vec<_> = line.split_whitespace().filter(|s| !s.is_empty()).collect();
+        let num_crates = parts[0].parse::<usize>().unwrap();
+        let from = parts[2].trim_end_matches(',').parse::<usize>().unwrap() - 1;
+        let to = parts[4].parse::<usize>().unwrap() - 1;
+    
         moves.push((num_crates, from, to));
     }
 
