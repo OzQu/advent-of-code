@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use regex::Regex;
 
 fn main() {
     let file = File::open("./test_data/example_data.txt").expect("Unable to open input.txt");
@@ -52,19 +53,21 @@ fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, us
         stacks.push(stack);
     }
 
+    let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
+
     for line in reader.lines() {
         let line = line.unwrap();
-        let parts: Vec<_> = line.split_whitespace().collect();
-        let num_crates = parts[1].parse::<usize>().unwrap();
-        let from = parts[3].trim_end_matches(',').parse::<usize>().unwrap() - 1;
-        let to = parts[5].parse::<usize>().unwrap() - 1;
+        if let Some(captures) = move_regex.captures(&line) {
+            let num_crates = captures[1].parse::<usize>().unwrap();
+            let from = captures[2].parse::<usize>().unwrap() - 1;
+            let to = captures[3].parse::<usize>().unwrap() - 1;
 
-        moves.push((num_crates, from, to));
+            moves.push((num_crates, from, to));
+        }
     }
 
     (stacks, moves)
 }
-
 
 /*
 This function iterates through the moves, and for each move, it pops crates
