@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use regex::Regex;
+use std::iter::repeat;
 
 fn main() {
     let file = File::open("./test_data/example_data.txt").expect("Unable to open input.txt");
@@ -15,42 +16,39 @@ fn main() {
     println!("Top crates of each stack: {}", top_crates);
 }
 
-/*
-This function reads the input file and returns two values: the initial
-stacks of crates and the list of moves. The stacks are represented as
-a vector of VecDeque<char>, while the moves are represented as a vector
-of tuples containing the number of crates to move, the source stack index,
-and the destination stack index.
-
-The input file is expected to have the following format:
-1. The first line contains the initial configuration of crate stacks,
-   where each stack is represented by a sequence of characters (crates),
-   and stacks are separated by whitespace.
-2. The subsequent lines represent the moves to be performed, with each line
-   formatted as follows:
-   "move <number_of_crates> from <source_stack> to <destination_stack>"
-   where <number_of_crates>, <source_stack>, and <destination_stack>
-   are integer values.
-
-The function parses the input by:
-1. Reading the first line to obtain the initial configuration of crate stacks.
-   Each stack is split by whitespace and converted into a VecDeque<char>.
-2. Reading the remaining lines to obtain the list of moves. Each line is
-   split by whitespace, and the relevant values (number of crates, source
-   stack, and destination stack) are extracted, parsed, and stored as tuples
-   in a vector.
-*/
 fn read_input<R: BufRead>(mut reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
-    let mut stacks = Vec::new();
+    let mut stacks: Vec<VecDeque<char>> = Vec::new();
     let mut moves = Vec::new();
 
-    let mut line = String::new();
-    reader.read_line(&mut line).expect("Failed to read initial stack line");
-    let stacks_line = line.trim();
+    let mut lines: Vec<String> = Vec::new();
 
-    for stack_str in stacks_line.split_whitespace() {
-        let stack: VecDeque<char> = stack_str.chars().collect();
-        stacks.push(stack);
+    for line in reader.lines() {
+        let line = line.unwrap();
+        if line.is_empty() {
+            break;
+        }
+        lines.push(line);
+    }
+
+    let num_stacks = lines
+        .last()
+        .unwrap()
+        .split_whitespace()
+        .count();
+
+    stacks = repeat(VecDeque::new()).take(num_stacks).collect();
+
+    for line in lines.iter().rev().skip(1) {
+        let chars: Vec<char> = line
+            .chars()
+            .filter(|&c| c != ' ')
+            .collect();
+
+        for (stack_idx, &crate_char) in chars.iter().enumerate() {
+            if crate_char != '[' && crate_char != ']' {
+                stacks[stack_idx].push_back(crate_char);
+            }
+        }
     }
 
     let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
