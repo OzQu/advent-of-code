@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use regex::Regex;
-use std::iter::repeat;
 
 fn main() {
     let file = File::open("./test_data/example_data.txt").expect("Unable to open input.txt");
@@ -17,57 +15,48 @@ fn main() {
 }
 
 fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
-    let mut stacks: Vec<VecDeque<char>> = Vec::new();
-    let mut move_commands = Vec::new();
+    let mut stacks_section: Vec<String> = Vec::new();
+    let mut moves: Vec<(usize, usize, usize)> = Vec::new();
+    let mut stacks: Vec<VecDeque<char>>;
 
-    let mut lines: Vec<String> = Vec::new();
-    let mut is_move_section = false;
+    let mut in_stacks_section = true;
 
     for line in reader.lines() {
         let line = line.unwrap();
-        if line.is_empty() {
-            is_move_section = true;
+        if line.trim().is_empty() {
+            in_stacks_section = false;
             continue;
         }
-        if !is_move_section {
-            lines.push(line);
+
+        if in_stacks_section {
+            stacks_section.push(line);
         } else {
-            move_commands.push(line);
-        }
-    }
-
-    let num_stacks = lines
-        .last()
-        .unwrap()
-        .split_whitespace()
-        .count();
-
-    stacks = repeat(VecDeque::new()).take(num_stacks).collect();
-
-    for line in lines.iter().rev().skip(1) {
-        let chars: Vec<char> = line
-            .chars()
-            .filter(|&c| c != ' ')
-            .collect();
-    
-        for (stack_idx, &crate_char) in chars.iter().enumerate() {
-            if crate_char != '[' && crate_char != ']' {
-                let actual_idx = stack_idx - 1;
-                stacks[actual_idx].push_back(crate_char);
-            }
-        }
-    }
-
-    let move_regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
-    let mut moves = Vec::new();
-
-    for line in move_commands.iter() {
-        if let Some(captures) = move_regex.captures(&line) {
-            let num_crates = captures[1].parse::<usize>().unwrap();
-            let from = captures[2].parse::<usize>().unwrap() - 1;
-            let to = captures[3].parse::<usize>().unwrap() - 1;
-
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            let num_crates = parts[0].parse::<usize>().unwrap();
+            let from = parts[1].parse::<usize>().unwrap();
+            let to = parts[2].parse::<usize>().unwrap();
             moves.push((num_crates, from, to));
+        }
+    }
+
+    let num_stacks = stacks_section.last().unwrap().chars().filter(|c| c.is_digit(10)).count();
+    stacks = vec![VecDeque::new(); num_stacks];
+
+    for (row_index, line) in stacks_section.iter().enumerate() {
+        if row_index == stacks_section.len() - 1 {
+            break;
+        }
+
+        let mut stack_index = 0;
+        let mut char_iter = line.chars().peekable();
+        while let Some(c) = char_iter.next() {
+            if c.is_alphabetic() {
+                stacks[stack_index].push_front(c);
+                stack_index += 1;
+            } else if c == ' ' && char_iter.peek().map_or(false, |next| *next == ' ') {
+                stack_index += 1;
+                char_iter.next(); // Consume the extra space
+            }
         }
     }
 
