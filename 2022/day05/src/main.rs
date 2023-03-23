@@ -1,17 +1,19 @@
 use std::collections::VecDeque;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, stdin};
 
 fn main() {
-    let file = File::open("./test_data/example_data.txt").expect("Unable to open input.txt");
-    let reader = BufReader::new(file);
+    let stdin = stdin();
+    let (mut stacks, moves) = read_input(stdin.lock());
 
-    let (stacks, moves) = read_input(reader);
+    rearrange_crates(&mut stacks, &moves);
 
-    let rearranged_stacks = rearrange_crates(stacks, moves);
-    let top_crates = get_top_crates(rearranged_stacks);
-
-    println!("Top crates of each stack: {}", top_crates);
+    for stack in &stacks {
+        for c in stack {
+            print!("[{}]", c);
+        }
+        println!();
+    }
 }
 
 fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
@@ -32,10 +34,12 @@ fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize,
             stacks_section.push(line);
         } else {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            let num_crates = parts[0].parse::<usize>().unwrap();
-            let from = parts[1].parse::<usize>().unwrap();
-            let to = parts[2].parse::<usize>().unwrap();
-            moves.push((num_crates, from, to));
+            if parts[0] == "move" {
+                let num_crates = parts[1].parse::<usize>().unwrap();
+                let from = parts[3].parse::<usize>().unwrap();
+                let to = parts[5].parse::<usize>().unwrap();
+                moves.push((num_crates, from, to));
+            }
         }
     }
 
@@ -68,18 +72,19 @@ This function iterates through the moves, and for each move, it pops crates
 from the source stack and pushes them to the destination stack. The resulting
 stacks are returned after all moves are completed. */
 fn rearrange_crates(
-    mut stacks: Vec<VecDeque<char>>,
-    moves: Vec<(usize, usize, usize)>,
-) -> Vec<VecDeque<char>> {
+    stacks: &mut Vec<VecDeque<char>>,
+    moves: &[(usize, usize, usize)],
+) {
     for (num_crates, from, to) in moves {
-        for _ in 0..num_crates {
-            if let Some(crate_char) = stacks[from].pop_front() {
-                stacks[to].push_front(crate_char);
-            }
+        let from = from - 1;
+        let to = to - 1;
+        for _ in 0..*num_crates {
+            let crate_char = stacks[from].pop_front().unwrap();
+            stacks[to].push_front(crate_char);
         }
     }
-    stacks
 }
+
 
 /*
 This function iterates through the stacks, gets the front element
