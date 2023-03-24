@@ -1,98 +1,188 @@
-use std::collections::VecDeque;
 use std::fs::File;
-use std::io::{BufRead, BufReader, stdin};
+use std::io::{BufRead, BufReader};
+use std::collections::VecDeque;
 
-fn main() {
-    let stdin = stdin();
-    let (mut stacks, moves) = read_input(stdin.lock());
+#[derive(Debug, PartialEq)]
+pub enum ParseCargoCrateLineError {
+    InvalidFormat,
+}
 
-    rearrange_crates(&mut stacks, &moves);
-
-    for stack in &stacks {
-        for c in stack {
-            print!("[{}]", c);
-        }
-        println!();
+fn main() -> () {
+    // Read and parse input file
+    // let input_file = "./test_data/example_data.txt";
+    let input_file = "./data.txt";
+    if let Ok(top_chars) = process(input_file) {
+        println!("{}", top_chars);
     }
 }
 
-fn read_input<R: BufRead>(reader: R) -> (Vec<VecDeque<char>>, Vec<(usize, usize, usize)>) {
-    let mut stacks_section: Vec<String> = Vec::new();
-    let mut moves: Vec<(usize, usize, usize)> = Vec::new();
-    let mut stacks: Vec<VecDeque<char>>;
+fn process(input_file: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let (mut stacks, commands) = read_and_parse_input_file(input_file)?;
 
-    let mut in_stacks_section = true;
+    // Process commands
+    for (num_crates, from, to) in commands {
+        // Account for 1-based indexing in commands
+        let from_idx = from - 1;
+        let to_idx = to - 1;
 
-    for line in reader.lines() {
-        let line = line.unwrap();
-        if line.trim().is_empty() {
-            in_stacks_section = false;
-            continue;
-        }
-
-        if in_stacks_section {
-            stacks_section.push(line);
-        } else {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts[0] == "move" {
-                let num_crates = parts[1].parse::<usize>().unwrap();
-                let from = parts[3].parse::<usize>().unwrap();
-                let to = parts[5].parse::<usize>().unwrap();
-                moves.push((num_crates, from, to));
+        // Move crates between stacks
+        for _ in 0..num_crates {
+            if let Some(crate_char) = stacks[from_idx].pop_front() {
+                stacks[to_idx].push_front(crate_char);
+            } else {
+                eprintln!("Error: Not enough crates in stack {} to move", from);
+                return Err("Not enough crates to move".into());
             }
         }
     }
 
-    let num_stacks = stacks_section.last().unwrap().chars().filter(|c| c.is_digit(10)).count();
-    stacks = vec![VecDeque::new(); num_stacks];
+    // Print the final state of the stacks
+    println!("Final state of stacks:");
+    let mut top_chars = String::new();
+    for (idx, stack) in stacks.iter().enumerate() {
+        let stack_content: String = stack.iter().collect();
+        println!("Stack {}: {}", idx + 1, stack_content);
+        if let Some(first) = stack.get(0) {
+            top_chars += &first.to_string()
+        }
+    }
 
-    for (row_index, line) in stacks_section.iter().enumerate() {
-        if row_index == stacks_section.len() - 1 {
-            break;
+    Ok(top_chars)
+
+}
+
+fn read_and_parse_input_file(file_path: &str) -> Result<(Vec<VecDeque<char>>, Vec<(usize, usize, usize)>), Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let mut cargo_section = true;
+
+    let mut stacks: Vec<VecDeque<char>> = Vec::new();
+    let mut commands: Vec<(usize, usize, usize)> = Vec::new();
+
+    for line_result in reader.lines() {
+        let line = line_result?;
+        match cargo_section {
+            true => {
+                if line.trim().is_empty() {
+                    cargo_section = false;
+                } else {
+                    match parse_cargo_crate_line(&line, &mut stacks) {
+                        Ok(_) => println!("noice"),
+                        Err(err) => println!("err: {:?}", err)
+                    };
+                }
+            },
+            false => commands.push(parse_command_line(&line))
+        }
+    }
+    
+    Ok((stacks, commands))
+}
+
+fn parse_cargo_crate_line(line: &str, stacks: &mut Vec<VecDeque<char>>) -> Result<(), ParseCargoCrateLineError> {
+    let mut iter = line.chars();
+    let mut index = 0;
+
+    while let Some(ch) = iter.next() {
+        let stack = match (ch, iter.next(), iter.next()) {
+            ('[', Some(c), Some(']')) if c.is_ascii_alphabetic() => {
+                let mut deque = VecDeque::new();
+                deque.push_front(c);
+                Some(deque)
+            }
+            (' ', Some(' '), Some(' ')) => Some(VecDeque::new()),
+            (' ', Some(_), Some(' ')) => None,
+            _ => return Err(ParseCargoCrateLineError::InvalidFormat),
+        };
+
+        if let Some(stack) = stack {
+            if index < stacks.len() {
+                if !stack.is_empty() {
+                    stacks[index].extend(stack);
+                }
+            } else {
+                stacks.push(stack);
+            }
+
+            index += 1;
         }
 
-        let mut stack_index = 0;
-        let mut char_iter = line.chars().peekable();
-        while let Some(c) = char_iter.next() {
-            if c.is_alphabetic() {
-                stacks[stack_index].push_front(c);
-                stack_index += 1;
-            } else if c == ' ' && char_iter.peek().map_or(false, |next| *next == ' ') {
-                stack_index += 1;
-                char_iter.next(); // Consume the extra space
+        // Skip the separator space
+        if let Some(next_ch) = iter.next() {
+            if next_ch != ' ' {
+                return Err(ParseCargoCrateLineError::InvalidFormat);
             }
         }
     }
 
-    (stacks, moves)
+    Ok(())
 }
 
-/*
-This function iterates through the moves, and for each move, it pops crates
-from the source stack and pushes them to the destination stack. The resulting
-stacks are returned after all moves are completed. */
-fn rearrange_crates(
-    stacks: &mut Vec<VecDeque<char>>,
-    moves: &[(usize, usize, usize)],
-) {
-    for (num_crates, from, to) in moves {
-        let from = from - 1;
-        let to = to - 1;
-        for _ in 0..*num_crates {
-            let crate_char = stacks[from].pop_front().unwrap();
-            stacks[to].push_front(crate_char);
-        }
+
+fn parse_command_line(line: &str) -> (usize, usize, usize) {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    let num_crates = parts[1].parse::<usize>().unwrap();
+    let from = parts[3].parse::<usize>().unwrap();
+    let to = parts[5].parse::<usize>().unwrap();
+
+    (num_crates, from, to)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_read_and_parse_input_file() {
+        let test_file_path = Path::new("./test_data/example_data.txt");
+    
+        let result = read_and_parse_input_file(test_file_path.to_str().unwrap());
+    
+        assert!(result.is_ok(), "Error when reading and parsing input file");
+        let (stacks, commands) = result.unwrap();
+    
+        // assert stacks
+        assert_eq!(3, stacks.len());
+        assert_eq!(vec![&'N', &'Z'], stacks[0].iter().collect::<Vec<_>>());
+        assert_eq!(vec![&'D', &'C', &'M'], stacks[1].iter().collect::<Vec<_>>());
+        assert_eq!(vec![&'P'], stacks[2].iter().collect::<Vec<_>>());
+        // assert commands
+        let expected_commands = vec![
+            (1, 2, 1),
+            (3, 1, 3),
+            (2, 2, 1),
+            (1, 1, 2),
+        ];
+        assert_eq!(expected_commands, commands);
     }
+
+    #[test]
+    fn test_parse_cargo_crate_line() {
+        let input = "    [D] [N]    ";
+        let mut stacks: Vec<VecDeque<char>> = Vec::new();
+        let result = parse_cargo_crate_line(input, &mut stacks);
+    
+        assert!(result.is_ok());
+        assert_eq!(4, stacks.len());
+    
+        assert!(stacks[0].is_empty());
+        assert_eq!(1, stacks[1].len());
+        assert_eq!(vec![&'D'], stacks[1].iter().collect::<Vec<&char>>());
+        assert_eq!(1, stacks[2].len());
+        assert_eq!(vec![&'N'], stacks[2].iter().collect::<Vec<&char>>());
+        assert!(stacks[3].is_empty());
+    }
+
+    #[test]
+    fn test_parse_command_line() {
+        let line = "move 2 from 1 to 3";
+        let (num_crates, from, to) = parse_command_line(line);
+
+        assert_eq!(num_crates, 2);
+        assert_eq!(from, 1);
+        assert_eq!(to, 3);
+    }
+
 }
-
-
-/*
-This function iterates through the stacks, gets the front element
-(the top crate) of each stack, and collects them into a String. */
-fn get_top_crates(stacks: Vec<VecDeque<char>>) -> String {
-    stacks
-        .into_iter()
-        .filter_map(|stack| stack.front().cloned())
-        .collect()
-}
-
