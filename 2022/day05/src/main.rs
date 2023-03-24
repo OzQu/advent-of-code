@@ -7,16 +7,24 @@ pub enum ParseCargoCrateLineError {
     InvalidFormat,
 }
 
+pub enum Part {
+    A,
+    B
+}
+
 fn main() -> () {
     // Read and parse input file
     // let input_file = "./test_data/example_data.txt";
     let input_file = "./data.txt";
-    if let Ok(top_chars) = process(input_file) {
+    if let Ok(top_chars) = process(input_file, &Part::A) {
+        println!("{}", top_chars);
+    }
+    if let Ok(top_chars) = process(input_file, &Part::B) {
         println!("{}", top_chars);
     }
 }
 
-fn process(input_file: &str) -> Result<String, Box<dyn std::error::Error>> {
+fn process(input_file: &str, part: &Part) -> Result<String, Box<dyn std::error::Error>> {
     let (mut stacks, commands) = read_and_parse_input_file(input_file)?;
 
     // Process commands
@@ -25,13 +33,33 @@ fn process(input_file: &str) -> Result<String, Box<dyn std::error::Error>> {
         let from_idx = from - 1;
         let to_idx = to - 1;
 
-        // Move crates between stacks
-        for _ in 0..num_crates {
-            if let Some(crate_char) = stacks[from_idx].pop_front() {
-                stacks[to_idx].push_front(crate_char);
-            } else {
-                eprintln!("Error: Not enough crates in stack {} to move", from);
-                return Err("Not enough crates to move".into());
+        match part {
+            Part::A => {
+                // Move crates between stacks
+                for _ in 0..num_crates {
+                    if let Some(crate_char) = stacks[from_idx].pop_front() {
+                        stacks[to_idx].push_front(crate_char);
+                    } else {
+                        eprintln!("Error: Not enough crates in stack {} to move", from);
+                        return Err("Not enough crates to move".into());
+                    }
+                }
+            },
+            Part::B => {
+                // Move all at once between stacks
+                let mut values: VecDeque<char>= VecDeque::new();
+                for _ in 0..num_crates {
+                    if let Some(crate_char) = stacks[from_idx].pop_front() {
+                        values.push_front(crate_char);
+                    } else {
+                        eprintln!("Error: Not enough crates in stack {} to move", from);
+                        return Err("Not enough crates to move".into());
+                    }
+                }
+                for value in values {
+                    stacks[to_idx].push_front(value);
+                }
+
             }
         }
     }
