@@ -1,5 +1,7 @@
 # ChatGPT 4 - Day 6: Tuning Trouble
 
+For this day's task I made no changes to the code by myself, all changes were requested from OpenAI. All content is in `main.rs` and discussion with OpenAI is presented below:
+
 ## Chat messages
 ### Me
 Thanks for the help so far. 
