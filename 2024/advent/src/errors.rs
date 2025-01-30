@@ -1,4 +1,5 @@
 use thiserror::Error;
+use std::num::ParseIntError;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -6,4 +7,6 @@ pub enum ParseError {
     InvalidInput(String),
     #[error("Failed to read lines from file")]
     ReadError,
+    #[error("Failed to parse integer: {0}")]
+    ParseIntError(#[from] ParseIntError),
 }
